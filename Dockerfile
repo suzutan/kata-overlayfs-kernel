@@ -35,3 +35,4 @@ RUN sed -i.bak -e "s%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pu
     cd "linux-${kernel_version}" && \
     curl -sL https://raw.githubusercontent.com/kata-containers/packaging/master/kernel/patches/0001-NO-UPSTREAM-9P-always-use-cached-inode-to-fill-in-v9.patch | patch -p1 && \
     make ARCH=${kernel_dir} -j$(nproc)
+#TODO: ビルド成果物をcpする
