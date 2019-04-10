@@ -28,7 +28,7 @@ RUN sed -i.bak -e "s%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pu
     kernel_url="https://cdn.kernel.org/pub/linux/kernel/v$(echo $kernel_version | cut -f1 -d.).x/${kernel_tar_file}" && \
     curl -LsOk ${kernel_url} && \
     tar -Jxvf ${kernel_tar_file} && \
-    patch -p1 < config.patch && \
+    patch -p1 < /tmp/build/config.patch && \
     cp .config "linux-${kernel_version}/.config" && \
     cd "linux-${kernel_version}" && \
     curl -sL https://raw.githubusercontent.com/kata-containers/packaging/master/kernel/patches/0001-NO-UPSTREAM-9P-always-use-cached-inode-to-fill-in-v9.patch | patch -p1 && \
