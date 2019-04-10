@@ -32,6 +32,28 @@ sudo systemctl restart docker
 
 ```bash
 docker build -t local-kata-build .
+docker create local-kata-build
+output_dir="$(mktemp -d)"
+docker cp /out ${output_dir}
+
+kata_kernel_dir=/opt/kata/share/kata-containers
+output_kernel_version="$(cat ${output_dir}/kernel_version)"
+
+# vmlinuz(bzImage) のインストール
+install -o root -g root -m 0755 -D "${output_dir}/vmlinuz-${output_kernel_version}" "${kata_kernel_dir}/vmlinuz-${output_kernel_version}"
+ln -f -s ${kata_kernel_dir}/vmlinuz-${output_kernel_version} ${kata_kernel_dir}/vmlinuz.container
+
+# vmlinuxのインストール
+install -o root -g root -m 0755 -D "${output_dir}/vmlinux-${output_kernel_version}" "${kata_kernel_dir}/vmlinux-${output_kernel_version}"
+ln -f -s ${kata_kernel_dir}/vmlinux-${output_kernel_version} ${kata_kernel_dir}/vmlinux.container
+ls -lsah ${kata_kernel_dir}
+
 ```
 
-docker create local-kata-build
+## 新しい guest kernel で kata-container たてる
+
+overlayfs が filesystems にあれば OK
+
+```bash
+docker run --rm -it --runtime=kata-qemu centos cat /proc/filesystems | grep overlay
+```
