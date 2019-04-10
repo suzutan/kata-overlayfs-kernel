@@ -2,6 +2,7 @@ FROM ubuntu:19.04
 
 COPY config.patch /tmp/build/config.patch
 
+WORKDIR /tmp/build
 RUN sed -i.bak -e "s%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g" /etc/apt/sources.list && \
     apt-get -y update && \
     apt-get -y install flex bison bc libelf-dev curl git make && \
@@ -21,9 +22,6 @@ RUN sed -i.bak -e "s%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pu
     cd $GOPATH/src/github.com/kata-containers/tests/.ci && \
     kernel_arch="$(./kata-arch.sh)" && \
     kernel_dir="$(./kata-arch.sh --kernel)" && \
-    mkdir -p /tmp/build && \
-    tmpdir="/tmp/build" && \
-    cd "$tmpdir" && \
     curl -sL https://raw.githubusercontent.com/kata-containers/packaging/master/kernel/configs/${kernel_arch}_kata_kvm_4.19.x -o .config && \
     kernel_version=$(grep "Linux/[${kernel_arch}]*" .config | cut -d' ' -f3 | tail -1) && \
     kernel_tar_file="linux-${kernel_version}.tar.xz" && \
@@ -34,5 +32,15 @@ RUN sed -i.bak -e "s%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pu
     cp .config "linux-${kernel_version}/.config" && \
     cd "linux-${kernel_version}" && \
     curl -sL https://raw.githubusercontent.com/kata-containers/packaging/master/kernel/patches/0001-NO-UPSTREAM-9P-always-use-cached-inode-to-fill-in-v9.patch | patch -p1 && \
-    make ARCH=${kernel_dir} -j$(nproc)
-#TODO: ビルド成果物をcpする
+    make ARCH=${kernel_dir} -j$(nproc) && \
+    kata_kernel_dir="/usr/share/kata-containers" && \
+    kata_vmlinuz="${kata_kernel_dir}/kata-vmlinuz-${kernel_version}.container" && \
+    [ $kernel_arch = ppc64le ] && kernel_file="$(realpath ./vmlinux)" || kernel_file="$(realpath arch/${kernel_arch}/boot/bzImage)" && \
+    mkdir -p /build && \
+    echo -n ${kernel_version} > /build/kernel_version && \
+    # bzImage -> vmlinuz
+    cp "${kernel_file}" /build/vmlinuz-${kernel_version} && \
+    # vmlinux -> vmlinux
+    cp "$(realpath vmlinux)" /build/vmlinux-${kernel_version} && \
+    cp modules.builtin /build/modules.builtin-${kernel_version} && \
+    cp modules.builtin /build/modules.order-${kernel_version}
