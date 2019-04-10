@@ -1,3 +1,3 @@
 # kata-overlayfs-guest-kernel
 
-kata-container上でoverlayfsを使ってDocker in Docker をするためのやつ。
+kata-container 上で overlayfs を使って Docker in Docker をするためのやつ。
